@@ -172,20 +172,22 @@ rm1 = RuleManager()
 if ack_on_error:  
     
     rm0 = RuleManager()
-    rm0.add_context(rule_context, compress_rule, frag_rule1, frag_rule2)
+    #rm0.add_context(rule_context, compress_rule, frag_rule1, frag_rule2)
 
     rm1 = RuleManager()
-    rm1.add_context(rule_context, compress_rule, frag_rule2, frag_rule1)
+    #rm1.add_context(rule_context, compress_rule, frag_rule2, frag_rule1)
+
+
+devaddr = b"\xaa\xbb\xcc\xdd"
 
 rm0.Add(dev_info=[frag_rule1])
-rm1.Add(dev_info=[frag_rule1])
+rm1.Add(dev_info=[frag_rule1], device=devaddr)
 
 #---------------------------------------------------------------------------
 # Configuration of the simulation
 Statsct.get_results() 
 sim = simul.Simul(simul_config)
 
-devaddr = b"\xaa\xbb\xcc\xdd"
 node0 = make_node(sim, rm0, devaddr)                   # SCHC device
 node1 = make_node(sim, rm1, devaddr) # SCHC gw
 sim.add_sym_link(node0, node1)

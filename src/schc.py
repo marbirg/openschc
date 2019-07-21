@@ -161,44 +161,48 @@ class SCHCProtocol:
         # the receiver never knows if the packet from the device having the L2
         # addrss is encoded in SCHC.  Therefore, it has to search the db with
         # the field value of the packet.
-        context = self.rule_manager.FindRuleFromSCHCpacket(schc=raw_packet, device=dev_L2addr)
-        if context is None:
+
+        packet_bbuf = BitBuffer(raw_packet) 
+
+        rule = self.rule_manager.FindRuleFromSCHCpacket(schc=packet_bbuf, device=dev_L2addr)
+
+        print ("Rule ", rule)
+        if rule is None:
             # reject it.
             self._log("Rejected. Not for SCHC packet, sender L2addr={}".format(
                     dev_L2addr))
             return
         # find a rule in the context for this packet.
-        packet_bbuf = BitBuffer(raw_packet) 
         #XXX print(self.rule_manager.FindRuleFromSCHCpacket(packet_bbuf))
-        key, rule = self.rule_manager.find_rule_bypacket(context, packet_bbuf)
-        print('key,rule {},{}'.format(key,rule))
 
-        if key == "fragSender":
-            schc_frag = schcmsg.frag_sender_rx(rule, packet_bbuf)
-            # find existing session for fragment or reassembly.
-            session = self.fragment_session.get(rule.RuleID,
-                                                rule.RuleIDLength,
-                                                schc_frag.dtag)
-            print("rule.ruleID -> {},rule.ruleLength-> {}, dtag -> {}".format(
-                rule.RuleID, rule.RuleIDLength, schc_frag.dtag))
-            if session is not None:
-                print("Fragmentation session found", session)
-                session.receive_frag(schc_frag)
-            else:
-                print("context exists, but no {} session for this packet {}".
-                        format(key, dev_L2addr))
-        elif key == "fragReceiver":
+        # if key == "fragSender":
+        #     schc_frag = schcmsg.frag_sender_rx(rule, packet_bbuf)
+        #     # find existing session for fragment or reassembly.
+        #     session = self.fragment_session.get(rule.RuleID,
+        #                                         rule.RuleIDLength,
+        #                                         schc_frag.dtag)
+        #     print("rule.ruleID -> {},rule.ruleLength-> {}, dtag -> {}".format(
+        #         rule.RuleID, rule.RuleIDLength, schc_frag.dtag))
+        #     if session is not None:
+        #         print("Fragmentation session found", session)
+        #         session.receive_frag(schc_frag)
+        #     else:
+        #         print("context exists, but no {} session for this packet {}".
+        #                 format(key, dev_L2addr))
+        # elif key == "fragReceiver":
+        if True:
             schc_frag = schcmsg.frag_receiver_rx(rule, packet_bbuf)
             # find existing session for fragment or reassembly.
-            session = self.reassemble_session.get(rule.RuleID,
-                                                rule.RuleIDLength, schc_frag.dtag)
+            session = self.reassemble_session.get(rule[T_RULEID],
+                                                rule[T_RULEIDLENGTH], schc_frag.dtag)
             print("rule.RuleID -> {},rule.RuleIDLength-> {}, dtag -> {}".format(
-                    rule.RuleID,rule.RuleIDLength, schc_frag.dtag))
+                    rule[T_RULEID],rule[T_RULEIDLENGTH], schc_frag.dtag))
             
             if session is not None:
                 print("Reassembly session found", session)
             else:
                 # no session is found.  create a new reassemble session.
+                context = None
                 session = self.new_reassemble_session(context, rule, schc_frag.dtag,
                                                       dev_L2addr)
                 self.reassemble_session.add(rule.RuleID, rule.RuleIDLength,
