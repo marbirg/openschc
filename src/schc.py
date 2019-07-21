@@ -72,48 +72,50 @@ class SCHCProtocol:
 
     def schc_send(self, dst_L3addr, raw_packet):
         self._log("recv-from-L3 -> {} {}".format(dst_L3addr, raw_packet))
-        context = self.rule_manager.find_context_bydstiid(dst_L3addr)
-        if context is None:
-            # reject it.
-            self._log("Rejected. Not for SCHC packet, L3addr={}".format(
-                    dst_L3addr))
-            return
-        # Compression process
-        packet_bbuf = BitBuffer(raw_packet)
-        if not self.config.get("debug-fragment"):
-            print("----------------------- Compression Process ----------------------------")
-            # XXX debug_protocol is for debug, need to be moved somewhere.
-            class debug_protocol:
-                def _log(*arg):
-                    print(*arg)
-            p = Parser(debug_protocol)
-            # XXX a hint of the direction must be defined in the config.
-            direction = T_DIR_UP    # XXX must be defined in the config or other!!
-            v = p.parse(raw_packet, direction)
-            self._log("packet parsed: {}".format(pprint.pprint(v[0])))
-            rule = self.rule_manager.FindRuleFromPacket(v[0], direction=direction)
-            if rule != None:
-                self._log("compression rule={}".format(rule))
-                schc_packet = self.compressor.compress(rule, v[0], v[1], direction)
-                #NEED TO BE FIX -> there is an error when packets are larger than 250B
-                #The assert in the funcion __add__ of bitarray.py line 257 gives an 
-                #Assertion Error.
-                # check if fragmentation is needed.
-                if packet_bbuf.count_added_bits() < self.layer2.get_mtu_size():
-                    self._log("SCHC fragmentation is not needed. size={}".format(
-                            packet_bbuf.count_added_bits()))
-                    args = (packet_bbuf.get_content(), context["devL2Addr"])
-                    self.scheduler.add_event(0, self.layer2.send_packet, args)
-                    return
+        # context = self.rule_manager.find_context_bydstiid(dst_L3addr)
+        # if context is None:
+        #     # reject it.
+        #     self._log("Rejected. Not for SCHC packet, L3addr={}".format(
+        #             dst_L3addr))
+        #     return
+        # # Compression process
+        # packet_bbuf = BitBuffer(raw_packet)
+        # if not self.config.get("debug-fragment"):
+        #     print("----------------------- Compression Process ----------------------------")
+        #     # XXX debug_protocol is for debug, need to be moved somewhere.
+        #     class debug_protocol:
+        #         def _log(*arg):
+        #             print(*arg)
+        #     p = Parser(debug_protocol)
+        #     # XXX a hint of the direction must be defined in the config.
+        #     direction = T_DIR_UP    # XXX must be defined in the config or other!!
+        #     v = p.parse(raw_packet, direction)
+        #     self._log("packet parsed: {}".format(pprint.pprint(v[0])))
+        #     rule = self.rule_manager.FindRuleFromPacket(v[0], direction=direction)
+        #     if rule != None:
+        #         self._log("compression rule={}".format(rule))
+        #         schc_packet = self.compressor.compress(rule, v[0], v[1], direction)
+        #         #NEED TO BE FIX -> there is an error when packets are larger than 250B
+        #         #The assert in the funcion __add__ of bitarray.py line 257 gives an 
+        #         #Assertion Error.
+        #         # check if fragmentation is needed.
+        #         if packet_bbuf.count_added_bits() < self.layer2.get_mtu_size():
+        #             self._log("SCHC fragmentation is not needed. size={}".format(
+        #                     packet_bbuf.count_added_bits()))
+        #             args = (packet_bbuf.get_content(), context["devL2Addr"])
+        #             self.scheduler.add_event(0, self.layer2.send_packet, args)
+        #             return
             
-        # fragmentation is required.
+        # # fragmentation is required.
 
-        # NOTE: If you need fragmentation just after compression, the follwing
-        # fragmentation block should be included in the above "comp" block.
+        # # NOTE: If you need fragmentation just after compression, the follwing
+        # # fragmentation block should be included in the above "comp" block.
 
-        # Do fragmenation
+        # # Do fragmenation
         print("----------------------- Fragmentation Rule -----------------------")
-        rule = context["fragSender"]
+        #rule = context["fragSender"]  #LT new rule manager find a comopression rule in the RM
+
+        rule = self.rule_manager.FindFragmentationRule()
         pprint.pprint(rule.__dict__)
         self._log("fragmentation rule_id={}".format(rule.RuleID))
         session = self.new_fragment_session(context, rule)

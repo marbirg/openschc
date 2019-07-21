@@ -406,6 +406,9 @@ class RuleManager:
             self._ctxt.append(d)
 
         for n_rule in sor:
+            if n_rule == None:
+                break
+
             n_ruleID = n_rule[T_RULEID]
             n_ruleLength = n_rule[T_RULEIDLENGTH]
             left_aligned_n_ruleID = n_ruleID << (32 - n_ruleLength)
