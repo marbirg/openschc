@@ -164,10 +164,10 @@ compress_rule = None
 
 #no-ack
 rm0 = RuleManager()
-rm0.add_context(rule_context, compress_rule, frag_rule3, frag_rule4)
+#rm0.add_context(rule_context, compress_rule, frag_rule3, frag_rule4)
 
 rm1 = RuleManager()
-rm1.add_context(rule_context, compress_rule, frag_rule4, frag_rule3)
+#rm1.add_context(rule_context, compress_rule, frag_rule4, frag_rule3)
 #ack-on-error
 if ack_on_error:  
     
@@ -177,8 +177,8 @@ if ack_on_error:
     rm1 = RuleManager()
     rm1.add_context(rule_context, compress_rule, frag_rule2, frag_rule1)
 
-rm0.Add(file="example/comp-rule-100.json")
-rm1.Add(file="example/comp-rule-100.json")
+rm0.Add(dev_info=[frag_rule1])
+rm1.Add(dev_info=[frag_rule1])
 
 #---------------------------------------------------------------------------
 # Configuration of the simulation

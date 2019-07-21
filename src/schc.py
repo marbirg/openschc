@@ -115,14 +115,16 @@ class SCHCProtocol:
         print("----------------------- Fragmentation Rule -----------------------")
         #rule = context["fragSender"]  #LT new rule manager find a comopression rule in the RM
 
+        packet_bbuf = BitBuffer(raw_packet)
+
         rule = self.rule_manager.FindFragmentationRule()
-        pprint.pprint(rule.__dict__)
-        self._log("fragmentation rule_id={}".format(rule.RuleID))
+        pprint.pprint(rule)
+        self._log("fragmentation rule_id={}".format(rule[T_RULEID]))
         context = None # LT: don't know why context is needed, should be self.rule_manager which handle the context
 
         session = self.new_fragment_session(context, rule)
         session.set_packet(packet_bbuf)
-        self.fragment_session.add(rule.RuleID, rule.RuleIDLength,
+        self.fragment_session.add(rule[T_RULEID], rule[T_RULEIDLENGTH],
                                     session.dtag, session)
         session.start_sending()
 
@@ -159,7 +161,7 @@ class SCHCProtocol:
         # the receiver never knows if the packet from the device having the L2
         # addrss is encoded in SCHC.  Therefore, it has to search the db with
         # the field value of the packet.
-        context = self.rule_manager.find_context_bydevL2addr(dev_L2addr)
+        context = self.rule_manager.FindRuleFromSCHCpacket(schc=raw_packet, device=dev_L2addr)
         if context is None:
             # reject it.
             self._log("Rejected. Not for SCHC packet, sender L2addr={}".format(
