@@ -118,6 +118,8 @@ class SCHCProtocol:
         rule = self.rule_manager.FindFragmentationRule()
         pprint.pprint(rule.__dict__)
         self._log("fragmentation rule_id={}".format(rule.RuleID))
+        context = None # LT: don't know why context is needed, should be self.rule_manager which handle the context
+
         session = self.new_fragment_session(context, rule)
         session.set_packet(packet_bbuf)
         self.fragment_session.add(rule.RuleID, rule.RuleIDLength,
