@@ -111,7 +111,7 @@ payload_coap = True
 # General configuration
 
 l2_mtu = 408 # bits
-data_size = 255 # bytes
+data_size = 100 # bytes
 SF = 12
 
 simul_config = {
@@ -215,7 +215,7 @@ for rule1 in rm0.__dict__:
     print(rm0.__dict__[rule1])
     for info in rm0.__dict__[rule1]:
         print("info -> {}".format(info))
-        Statsct.set_device_rule(info)
+        #Statsct.set_device_rule(info)
 
 #gw rule
 print("-------------------------------- gw Rule -----------------------------")  
@@ -225,7 +225,7 @@ for rule1 in rm1.__dict__:
     print(rm1.__dict__[rule1])
     for info in rm1.__dict__[rule1]:
         print("info -> {}".format(info))
-        Statsct.set_gw_rule(info)
+        #Statsct.set_gw_rule(info)
 #---------------------------------------------------------------------------
 # Statistic configuration
        

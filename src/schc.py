@@ -142,7 +142,7 @@ class SCHCProtocol:
         return session
 
     def new_reassemble_session(self, context, rule, dtag, dev_L2addr):
-        mode = rule.get("FRMode")
+        mode = rule[T_FRAG][T_FRAG_MODE]
         if mode == "noAck":
             session = ReassemblerNoAck(self, context, rule, dtag, dev_L2addr)
         elif mode == "ackAlways":
@@ -205,7 +205,7 @@ class SCHCProtocol:
                 context = None
                 session = self.new_reassemble_session(context, rule, schc_frag.dtag,
                                                       dev_L2addr)
-                self.reassemble_session.add(rule.RuleID, rule.RuleIDLength,
+                self.reassemble_session.add(rule[T_RULEID], rule[T_RULEIDLENGTH],
                                             schc_frag.dtag, session)
                 print("New reassembly session created", session)
             print("----------------------- Reassembly process -----------------------")

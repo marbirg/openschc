@@ -44,8 +44,9 @@ def get_receiver_header_size(rule):
     return rule["RuleIDLength"] + rule["Fragmentation"]["FRModeProfile"]["dtagSize"] + rule.get("WSize", 0) + 1
 
 def get_mic_size(rule):
-    rule = rule["Fragmentation"]["FRModeProfile"] #ajoute
-    assert rule["MICAlgorithm"] == "crc32"
+    #rule = rule["Fragmentation"]["FRModeProfile"] #ajoute
+    #assert rule["MICAlgorithm"] == "crc32"
+    assert rule[T_FRAG][T_FRAG_PROF][T_FRAG_MIC] == "crc32"
     return 32
 
 def roundup(v, w=8):
