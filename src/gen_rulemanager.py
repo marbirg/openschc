@@ -526,7 +526,7 @@ class RuleManager:
         if not nrule[T_FRAG][T_FRAG_DIRECTION] in [T_DIR_UP, T_DIR_DW]:
             raise ValueError ("Keyword {} must be {} or {}".format(T_FRAG_DIRECTION, T_DIR_UP, T_DIR_DW))
 
-        arule[T_FRAG][T_FRAG_DIRECTION] = nrule[T_FRAG][T_FRAG_DIRECTION] 
+        arule[T_FRAG][T_FRAG_DIRECTION] = nrule[T_FRAG][T_FRAG_DIRECTION]
 
 
         if  T_FRAG_MODE in nrule[T_FRAG]:
@@ -855,6 +855,9 @@ class RuleManager:
                                     break # field from rule not found in pkt, go to next
                             dprint ("->", matches)
                     dprint("-"*10, matches, len(pkt), rule[T_META][T_UP_RULES], rule[T_META][T_DW_RULES])
+
+                    if matches == 0: return None # True is field descrition is empty
+
                     if direction == T_DIR_UP and matches == rule[T_META][T_UP_RULES]: return rule
                     if direction == T_DIR_DW and matches == rule[T_META][T_DW_RULES]: return rule
         return None
@@ -866,7 +869,7 @@ class RuleManager:
                     if T_NO_COMP in r:
                         return r
 
-        return None        
+        return None
 
     def FindFragmentationRule(self, deviceID=None, originalSize=None, reliability=T_FRAG_NO_ACK, direction=T_DIR_UP):
         """
@@ -874,7 +877,7 @@ class RuleManager:
         * original SCHC packet size
         * reliability NoAck, AckOnError, AckAlways
         * direction (UP or DOWN)
-        NOTE: Not yet implemented, returns the first fragmentation rule.  
+        NOTE: Not yet implemented, returns the first fragmentation rule.
         """
         for d in self._ctxt:
             if d["DeviceID"] == deviceID:

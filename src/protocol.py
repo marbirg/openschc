@@ -47,12 +47,12 @@ class SessionManager:
         return session
 
     def _add_session(self, session_id, session):
-        session_id = self._filter_session_id(session_id)        
+        session_id = self._filter_session_id(session_id)
         assert session_id not in self.session_table
         self.session_table[session_id] = session
-        
+
     def create_reassembly_session(self, context, rule, session_id):
-        session_id = self._filter_session_id(session_id)        
+        session_id = self._filter_session_id(session_id)
         l2_address, rule_id, unused, dtag = session_id
         if self.unique_peer:
             l2_address = None
@@ -81,7 +81,7 @@ class SessionManager:
 
         for dtag in range(0, dtag_limit):
             session_id = (l2_address, rule_id, rule_id_length, dtag)
-            session_id = self._filter_session_id(session_id)            
+            session_id = self._filter_session_id(session_id)
             if session_id not in self.session_table:
                 break
 
@@ -99,7 +99,7 @@ class SessionManager:
             session = FragmentAckOnError(self.protocol, context, rule, dtag)
         else:
             raise ValueError("invalid FRMode: {}".format(mode))
-        self._add_session(session_id, session)        
+        self._add_session(session_id, session)
         return session
 
     def get_state_info(self, **kw):
@@ -146,10 +146,12 @@ class SCHCProtocol:
 
     def _apply_compression(self, dst_l3_address, raw_packet):
         """Apply matching compression rule if one exists.
-        
+
         In any case return a SCHC packet (compressed or not) as a BitBuffer
         """
-        context = self.rule_manager.find_context_bydstiid(dst_l3_address)
+        #/!\ the following line looks obsolted, not used anymore
+        #context = self.rule_manager.find_context_bydstiid(dst_l3_address)
+
         if self.role == "device":
             t_dir = T_DIR_UP
         else:
@@ -161,23 +163,24 @@ class SCHCProtocol:
         parsed_packet, residue, parsing_error = P.parse(raw_packet, t_dir)
         self._log("parser {} {} {}".format(parsed_packet, residue, parsing_error))
         if parsed_packet is None:
+            self._log("WARNING: Parsing failed, use raw packet")
             return BitBuffer(raw_packet)
 
         # Apply compression rule
         rule = self.rule_manager.FindRuleFromPacket(parsed_packet, direction=t_dir)
         self._log("compression rule {}".format(rule))
         if rule is None:
+            self._log("no compression rule matches")
             rule = self.rule_manager.FindNoCompressionRule(dst_l3_address)
-            self._log("no-compression rule {}".format(rule))
+            if rule != None:
+                print (rule)
+                self._log("use no-compression rule id {}/{}")
+                # add ruleId at the begining
+                return BitBuffer(raw_packet)
 
-        if rule is None:
-            # XXX: not putting any SCHC compression header? - need fix
-            self._log("rule for compression/no-compression not found")
-            return BitBuffer(raw_packet)
-
-        if rule["Compression"] == []:  # XXX: should be "NoCompression"
-            self._log("compression result no-compression")
-            return BitBuffer(raw_packet)
+            else:
+                self._log("WARNING: no-compression rule id not found, use raw packet")
+                return BitBuffer(raw_packet)
 
         schc_packet = self.compressor.compress(rule, parsed_packet, residue, t_dir)
         dprint(schc_packet)
@@ -187,11 +190,11 @@ class SCHCProtocol:
         return schc_packet
 
 
-    def _make_frag_session(self, dst_l2_address):
+    def _make_frag_session(self, dst_l2_address, device_id=None):
         """Search a fragmentation rule, create a session for it, return None if not found"""
         # assume need for fragmentation was checked beforehands
-        l2_addr = self.layer2.get_address() #XXX: don't find rule based on my address???
-        frag_rule = self.rule_manager.FindFragmentationRule(l2_addr)
+
+        frag_rule = self.rule_manager.FindFragmentationRule(device_id)
         if frag_rule is None:
             self._log("fragmentation rule not found")
             return None
@@ -210,11 +213,12 @@ class SCHCProtocol:
         return session
 
 
-    def schc_send(self, dst_l2_address, dst_l3_address, raw_packet):
-        self._log("recv-from-l3 {} {} {}".format(dst_l2_address, dst_l3_address, raw_packet))
+    def schc_send(self, dst_l2_address, dst_l3_address, raw_packet, device_id=None):
+
+        self._log("recv-from-l3 {} {} {} {}".format(dst_l2_address, dst_l3_address, device_id, raw_packet))
 
         # Perform compression
-        packet_bbuf = self._apply_compression(dst_l3_address, raw_packet)
+        packet_bbuf = self._apply_compression(device_id, raw_packet)
 
         # Check if fragmentation is needed.
         if packet_bbuf.count_added_bits() < self.layer2.get_mtu_size():
@@ -225,7 +229,7 @@ class SCHCProtocol:
             return
 
         # Start a fragmentation session from rule database
-        frag_session = self._make_frag_session(dst_l2_address)
+        frag_session = self._make_frag_session(dst_l2_address, device_id)
         if frag_session is not None:
             frag_session.set_packet(packet_bbuf)
             frag_session.start_sending()
