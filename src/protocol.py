@@ -285,16 +285,16 @@ class SCHCProtocol:
                                      (dev_l2_addr, packet_bbuf.get_content()))
             return
 
-        if "Compression" not in rule:
+        if  not (T_COMP in rule or T_NO_COMP in rule):
             # reject it.
             self._log("Not compression parameters for SCHC packet, sender L2addr={}".format(
                 dev_l2_addr))
             return
 
-        if rule["Compression"]:
+        if T_COMP in rule:
             dprint("---------------------- Decompression ----------------------")
             dprint("---------------------- Decompression Rule-------------------------")
-            self._log("compression rule_id={}".format(rule[T_RULEID]))
+            self._log("compression rule_id={}/{}".format(rule[T_RULEID], rule[T_RULEIDLENGTH]))
             dprint("receiver frag received:", packet_bbuf)
             dprint('rule {}'.format(rule))
             dprint("------------------------ Decompression ---------------------------")
@@ -303,12 +303,15 @@ class SCHCProtocol:
             dprint(raw_packet)
             args = (dev_l2_addr, raw_packet)
             self.scheduler.add_event(0, self.layer3.recv_packet, args)
-
-    # def process_decompress(self, context, dev_l2_addr, schc_packet):
-    #    self._log("compression rule_id={}".format(context["comp"]["ruleID"]))
-    #    raw_packet = self.decompressor.decompress(context, schc_packet)
-    #    args = (dev_l2_addr, raw_packet)
-    #    self.scheduler.add_event(0, self.layer3.recv_packet, args)
+        elif T_NO_COMP in rule:
+            dprint("-------------- Remove No Compression ID ----------------")
+            rid = packet_bbuf.get_bits(nb_bits=rule[T_RULEIDLENGTH]) # remove RID
+            assert (rid == rule[T_RULEID])
+            return packet_bbuf.get_bits_as_buffer() # return the rest
+        else:
+            self._log("Not compression parameters for SCHC packet, sender L2addr={}".format(
+                dev_l2_addr))
+            return
 
     def get_state_info(self, **kw):
         result =  {

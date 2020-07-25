@@ -210,9 +210,10 @@ class ReassemblerNoAck(ReassembleBase):
                 # XXX
                 #rule = self.protocol.rule_manager.FindRuleFromSCHCpacket(schc=schc_packet)
                 #dprint("debug: no-ack FindRuleFromSCHCpacket", rule)
-                self.protocol.process_decompress(schc_packet, self.sender_L2addr, "UP")
+                uncompressed = self.protocol.process_decompress(schc_packet, self.sender_L2addr, "UP")
             self.state = 'DONE_NO_ACK'
-            #dprint(self.state)
+            print ("return uncompress packet")
+            dprint(self.state)
             return
         # set inactive timer.
         self.event_id_inactive_timer = self.protocol.scheduler.add_event(
@@ -265,7 +266,7 @@ class ReassemblerAckOnError(ReassembleBase):
 
         if schc_frag.ack_request == True:
             dprint("Received ACK-REQ")
-            self._last_receive_info = [("ack-req",)]            
+            self._last_receive_info = [("ack-req",)]
             # if self.state != "DONE":
             #     #this can happen when the ALL-1 is not received, so the state is
             #     #not done and the sender is requesting an ACK.
