@@ -174,9 +174,16 @@ class SCHCProtocol:
             rule = self.rule_manager.FindNoCompressionRule(dst_l3_address)
             if rule != None:
                 print (rule)
-                self._log("use no-compression rule id {}/{}")
-                # add ruleId at the begining
-                return BitBuffer(raw_packet)
+                self._log("use no-compression rule id {}/{}".format(rule[T_RULEID], rule[T_RULEIDLENGTH]))
+
+                output_bbuf = BitBuffer()
+
+                output_bbuf.add_bits(rule[T_RULEID], rule[T_RULEIDLENGTH])
+                dprint("rule {}/{}".format(rule[T_RULEID], rule[T_RULEIDLENGTH]))
+                output_bbuf.display(format="bin")
+
+                output_bbuf.add_bytes(raw_packet)
+                return output_bbuf
 
             else:
                 self._log("WARNING: no-compression rule id not found, use raw packet")

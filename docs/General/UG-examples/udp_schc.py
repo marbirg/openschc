@@ -19,7 +19,13 @@ frag_rule_noack = {
     }
 }
 
-rule_set = [compression_rule, frag_rule_noack]
+no_compression_rule = {
+    "RuleID": 14,
+    "RuleIDLength": 4,
+    "NoCompression" : []
+}
+
+rule_set = [compression_rule, frag_rule_noack, no_compression_rule]
 
 rule_manager = gen_rulemanager.RuleManager()
 rule_manager.Add(dev_info=rule_set)
