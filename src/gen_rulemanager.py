@@ -751,7 +751,7 @@ class RuleManager:
 
                     print ("\\" + "="*87 +"/")
                 elif T_NO_COMP in rule:
-                    print ("NO COMPRESSION RULE")
+                    print ("\\" + "-"*25 + "/")
 
     def MO_IGNORE (self, TV, FV, rlength, flength, arg):
         return True
