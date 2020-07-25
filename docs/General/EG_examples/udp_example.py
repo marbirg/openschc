@@ -41,8 +41,14 @@ parser.add_argument("--core-port", type=int)
 args = parser.parse_args()
 
 role = args.role
-core_ip = args.core_ip
-core_port = args.core_port
+
+core_ip = "127.0.0.1"
+core_port = 48044
+
+if args.core_ip != None:
+    core_ip = args.core_ip
+if args.core_port != None:
+    core_port = args.core_port
 
 
 
