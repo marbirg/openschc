@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 
 from net_udp_core import  *
 
@@ -26,7 +26,6 @@ rule_manager.Add(dev_info=rule_set)
 rule_manager.Print()
 
 
-
 # --------------------------------------------------
 # Get UDP address and role from command line
 
@@ -34,9 +33,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("role", choices=["device", "core-server"])
 parser.add_argument("--core-ip", type=str)
 parser.add_argument("--core-port", type=int)
-#parser.add_argument("other_end_ip", help="IP address of the other end")
-#parser.add_argument("other_end_port", help="Port number of the other end", type=int)
-#parser.add_argument("core_port", help="core port", type=int)
 
 args = parser.parse_args()
 
@@ -49,7 +45,6 @@ if args.core_ip != None:
     core_ip = args.core_ip
 if args.core_port != None:
     core_port = args.core_port
-
 
 
 if role == "device":
@@ -72,15 +67,16 @@ schc_protocol = protocol.SCHCProtocol(
     config, system, layer2=lower_layer, layer3=upper_layer, role=role, unique_peer=True)
 schc_protocol.set_rulemanager(rule_manager)
 
-if role == "device": # XXX: fix addresses mismatches
-    coap_ip_packet = bytearray(b"""`\
-    \x12\x34\x56\x00\x1e\x11\x1e\xfe\x80\x00\
-    \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
-    \x00\x00\x01\xfe\x80\x00\x00\x00\x00\x00\
-    \x00\x00\x00\x00\x00\x00\x00\x00\x02\x16\
-    2\x163\x00\x1e\x00\x00A\x02\x00\x01\n\xb3\
-    foo\x03bar\x06ABCD==Fk=eth0\xff\x84\x01\
-    \x82  &Ehello""")
+# --------------------------------------------------
+
+if role == "device":
+    import binascii
+
+    coap_ip_packet = binascii.unhexlify(
+    b'60123456001e111efe800000000000000000000000000001fe800000000000000000000000000002'
+    b'16321633001e0000'
+    b'410200010ab3666f6fff8401822020264568656c6c6f'
+    )
 
     upper_layer.send_later(1, udp_dst, coap_ip_packet)
 
