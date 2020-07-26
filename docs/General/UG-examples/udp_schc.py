@@ -14,7 +14,7 @@ frag_rule_noack = {
     "RuleID" : 12,
     "RuleIDLength" : 6,
     "Fragmentation" : {
-        "FRMode": "noAck",
+        "FRMode": "NoAck",
         "FRDirection": "UP"
     }
 }
@@ -25,7 +25,21 @@ no_compression_rule = {
     "NoCompression" : []
 }
 
-rule_set = [compression_rule, frag_rule_noack, no_compression_rule]
+frag_rule_aoe = {
+    "RuleID" : 15,
+    "RuleIDLength" : 6,
+    "Fragmentation" : {
+        "FRMode": "AckOnError",
+        "FRDirection": "UP",
+        "FRModeProfile" : {
+            "DTAGSize" : 1,
+            "FCNSize" : 3,
+            "tileSize" : 56
+        }
+    }
+}
+
+rule_set = [compression_rule, frag_rule_noack, no_compression_rule, frag_rule_aoe]
 
 rule_manager = gen_rulemanager.RuleManager()
 rule_manager.Add(dev_info=rule_set)
