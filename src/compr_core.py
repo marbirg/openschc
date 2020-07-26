@@ -109,7 +109,7 @@ T_FRAG_ACK_ALWAYS = "AckAlways"
 T_FRAG_ACK_ON_ERROR = "AckOnError"
 T_FRAG_DIRECTION = "FRDirection"
 T_FRAG_PROF = "FRModeProfile"
-T_FRAG_DTAG = "dtagSize" # XXX: should be T_FRAG_DTAG_SIZE
+T_FRAG_DTAG = "DTAGSize" # XXX: should be T_FRAG_DTAG_SIZE
 T_FRAG_W = "WSize" # XXX: should be T_FRAG_W_SIZE
 T_FRAG_FCN = "FCNSize"
 T_FRAG_WINDOW_SIZE = "windowSize"
@@ -245,42 +245,6 @@ class Compressor:
     def tx_cda_notyet(self, field, rule, output):
         raise NotImplementedError
 
-    # def compress(self, context, packet_bbuf, di=T_DIR_UP):
-    #     """ compress the data in the packet_bbuf according to the rule_set.
-    #     check if the all of the rules in the rule set are matched with the packet.
-    #     return the compressed data to be sent if matched.
-    #     or return None if not.
-    #     regarding to the di, the address comparion is like below:
-    #         di     source address      destination address
-    #         T_DIR_DW  APP_PREFIX/APP_IID  DEV_PREFIX/DEV_IID
-    #         T_DIR_UP  DEV_PREFIX/DEV_IID  APP_PREFIX/APP_IID
-    #     """
-    #     assert isinstance(packet_bbuf, BitBuffer)
-    #     assert di in [T_DIR_UP, T_DIR_DW]
-    #     input_bbuf = packet_bbuf.copy()
-    #     output_bbuf = BitBuffer()
-    #     rule = context["comp"]
-    #     # set ruleID first.
-    #     if rule["ruleID"] is not None and rule["ruleLength"] is not None:
-    #         output_bbuf.add_bits(rule["ruleID"], rule["ruleLength"])
-    #     for r in rule["compression"]["rule_set"]:
-    #         # compare each rule with input_bbuf.
-    #         # XXX need to handle "DI"
-    #         dprint("rule item:", r)
-    #         result, val = self.__func_tx_mo[r[T_MO]](r, input_bbuf)
-    #         dprint("result", result, val)
-    #         if result == False:
-    #             # if any of MO functions is failed, return None.
-    #             # this rule should not be applied.
-    #             return None
-    #         # if match the rule, call CDA.
-    #         self.__func_tx_cda[r[T_CDA]](r, val, output_bbuf)
-    #     if input_bbuf.count_remaining_bits() > 0:
-    #         output_bbuf += input_bbuf
-    #     # if all process have been succeeded, return the data.
-    #     self.protocol._log("compress: {}=>{}".format(
-    #         packet_bbuf, output_bbuf))
-    #     return output_bbuf
 
     def compress(self, rule, parsed_packet, data, direction=T_DIR_UP):
         """
