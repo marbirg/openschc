@@ -533,7 +533,7 @@ class RuleManager:
             if not T_FRAG_PROF in nrule[T_FRAG]:
                 arule[T_FRAG][T_FRAG_MODE] = {}
 
-            if nrule[T_FRAG][T_FRAG_MODE] in ["noAck", "ackAlways", "ackOnError"]:
+            if nrule[T_FRAG][T_FRAG_MODE] in [T_FRAG_NO_ACK, T_FRAG_ACK_ALWAYS, T_FRAG_ACK_ON_ERROR]:
                 arule[T_FRAG][T_FRAG_MODE] = nrule[T_FRAG][T_FRAG_MODE]
                 arule[T_FRAG][T_FRAG_PROF] ={}
 
@@ -541,15 +541,27 @@ class RuleManager:
                 _default_value (arule, nrule, T_FRAG_DTAG, 0)
                 _default_value (arule, nrule, T_FRAG_MIC, "crc32")
 
-                if nrule[T_FRAG][T_FRAG_MODE] == "noAck":
+                if nrule[T_FRAG][T_FRAG_MODE] == T_FRAG_NO_ACK: # NoACK
                     _default_value(arule, nrule, T_FRAG_DTAG, 2)
                     _default_value (arule, nrule, T_FRAG_W, 0)
                     _default_value (arule, nrule, T_FRAG_FCN, 3)
                     _default_value(arule, nrule, T_FRAG_L2WORDSIZE, 8)
-                elif nrule[T_FRAG][T_FRAG_MODE] == "ackAlways":
+                    _default_value (arule, nrule, T_FRAG_MAX_RETRY, 0)
+                    _default_value (arule, nrule, T_FRAG_TIMEOUT, 0)
+
+
+                elif nrule[T_FRAG][T_FRAG_MODE] == T_FRAG_ACK_ALWAYS: # Ack Always
                     _default_value (arule, nrule, T_FRAG_W, 1)
                     _default_value(arule, nrule, T_FRAG_L2WORDSIZE, 8)
-                elif  nrule[T_FRAG][T_FRAG_MODE] == "ackOnError":
+                    _default_value (arule, nrule, T_FRAG_MAX_RETRY, 3)
+                    _default_value (arule, nrule, T_FRAG_TIMEOUT, 3600)
+
+
+
+                elif  nrule[T_FRAG][T_FRAG_MODE] == T_FRAG_ACK_ON_ERROR: # Ack On Error
+                    if not T_FRAG_PROF in nrule[T_FRAG]:
+                        raise ValueError ("Ack On Error requires Profile")
+
                     if not T_FRAG_FCN in nrule[T_FRAG][T_FRAG_PROF]:
                         raise ValueError ("FCN Must be specified for Ack On Error")
 
@@ -559,18 +571,20 @@ class RuleManager:
                     _default_value (arule, nrule, T_FRAG_MAX_RETRY, 4)
                     _default_value (arule, nrule, T_FRAG_TIMEOUT, 600)
                     _default_value (arule, nrule, T_FRAG_L2WORDSIZE, 8)
-                    _default_value (arule, nrule, T_FRAG_LAST_TILE_IN_ALL1, None, True)
+                    _default_value (arule, nrule, T_FRAG_LAST_TILE_IN_ALL1, False)
+                    _default_value (arule, nrule, T_FRAG_MAX_RETRY, 3)
+                    _default_value (arule, nrule, T_FRAG_TIMEOUT, 3600)
 
-                    if nrule[T_FRAG][T_FRAG_PROF][T_FRAG_LAST_TILE_IN_ALL1] == True:
+                    if arule[T_FRAG][T_FRAG_PROF][T_FRAG_LAST_TILE_IN_ALL1] == True:
                         raise NotImplementedError ("Last tile in All-1 is not implemented yet")
 
                 # the size include All-*, Max_VLAUE is WINDOW_SIZE-1
                 _default_value(arule, nrule, T_FRAG_WINDOW_SIZE, (0x01 <<(arule[T_FRAG][T_FRAG_PROF][T_FRAG_FCN]))-1)
             else:
-                raise ValueError ("Unknown fragmentation mode {}".format())
+                raise ValueError ("Unknown fragmentation mode {}".format(nrule[T_FRAG][T_FRAG_MODE]))
         else:
             raise ValueError("No fragmentation mode")
-
+        print (arule)
         return arule
 
     def _create_compression_rule (self, nrule):
@@ -736,7 +750,7 @@ class RuleManager:
                     print ("!{} RCS Algorithm: {:<69}{}!".format(dir_c,rule[T_FRAG][T_FRAG_PROF][T_FRAG_MIC], dir_c))
 
                     if rule[T_FRAG][T_FRAG_MODE] != "noAck":
-                        print ("!{0}" + "-"*85 +"{0}!".format(dir_c))
+                        print ("!{0}".format(dir_c) + "-"*85 +"{0}!".format(dir_c))
                         if  rule[T_FRAG][T_FRAG_MODE] == "ackOnError":
                             txt = "Ack behavior: "+ rule[T_FRAG][T_FRAG_PROF][T_FRAG_ACK_BEHAVIOR]
                             print ("!{} {:<84}{}!".format(dir_c, txt, dir_c))
